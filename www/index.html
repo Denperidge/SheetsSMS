@@ -50,9 +50,17 @@
     </head>
     <body>
         <div id="container">
+            <label>URL to spreadsheet:</label>
             <input type="text" id="url" name="url">
-            <textarea id="console"></textarea>
+
+            <label>Text to send:</label>
+            <textarea id="text"></textarea>
+
+            <button id="send">Send</button>
+            
+            <span id="debug"></span>
         </div>
+        <script src="cordova.js"></script>
         <script src="index.js"></script>
     </body>
 </html>

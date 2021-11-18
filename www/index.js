@@ -29,6 +29,7 @@ function onDeviceReady() {
     var previousUrl = localStorage.getItem("url");
     if (previousUrl != null) {
         document.getElementById("url").value = previousUrl;
+        DownloadFromURL(previousUrl);
     }
 }
 
@@ -36,10 +37,12 @@ var contacts;
 // \s matches all spaces
 var numberRegex = /^[+0-9\s.-]{7,}$/;  // Thanks to https://stackoverflow.com/a/19715367/5522348
 
+var debug = document.getElementById("debug");
+
 var xlsx;
 function DownloadFromURL(url) {
     contacts = [];
-    document.getElementById("console").innerHTML = "";
+    debug.innerHTML = "";
     console.log(url)
     
     if (url.indexOf("google.com") > -1) {
@@ -89,11 +92,14 @@ function DownloadFromURL(url) {
                         }
                     }
 
+                    if (contact.phonenumber == "") {
+                        return;
+                    }
+     
+                    debug.innerHTML += "Added: " + contact.phonenumber + " " + contact.otherInfo + "<br>"
+          
                     contacts.push(contact);
                     console.log(contact)
-
-                        //var value = cell.h
-                        //if (numberRegex.test(cell))
                 });
             }
         }
@@ -113,3 +119,73 @@ document.getElementById("url").addEventListener("input", (e) => {
         DownloadFromURL(url);
     }, 1250);
 }, false);
+
+
+var sendingSms = null;
+(() => {
+    
+}, 1000);
+document.getElementById("send").addEventListener("click", () => {
+    if (sms == undefined) {
+        console.log("SMS not defined, cancelling send!");
+        return;
+    } 
+
+    debug.innerHTML = "";
+
+    if (sendingSms == null) {
+        HandleSMSPermissions(() => {
+
+            var options = {
+                android: {
+                    intent: ''
+                }
+            }
+            var index = 0;
+            var text = document.getElementById("text").value;
+
+            sendingSms = setInterval(() => {
+                var phonenumber = contacts[index].phonenumber;
+                sms.send(phonenumber, text, options, 
+                    (success) => {
+                        debug.innerHTML += "SMS succesfuly sent to " + phonenumber;
+                    },(error)=> {
+                        console.log("SMS failed: " + error);
+                        alert("SMS failed: " + error);
+                    })
+                index++;
+                if (index >= contacts.length) {
+                    clearInterval(sendingSms);
+                    alert("Done")
+                    sendingSms = null;
+                }
+            }, 1000);
+            
+        }); 
+    } else {
+        // Cancel if its pressed again
+        clearInterval(sendingSms);
+        sendingSms = null;
+    }
+
+    
+});
+
+function HandleSMSPermissions(cb) {
+    // Adapted from https://www.npmjs.com/package/cordova-sms-plugin
+    sms.hasPermission((hasPermission) => {
+        if (!hasPermission) {
+            sms.requestPermission(() => {
+                // SMS permission has been granted
+                cb();
+            }, (err) => {
+                alert("SMS permission not granted");
+            })
+        } else {
+            cb();
+        }
+        // From here, assume 
+    }, (err) => {
+        alert("SMS permission is needed!");
+    });
+}
