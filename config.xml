@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="io.cordova.hellocordova" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.denperidge.sheetssms" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <!-- https://stackoverflow.com/a/51183070/5522348 -->
-    <name>HelloCordova</name>
+    <name>SheetsSMS</name>
     <description>
-        A sample Apache Cordova application that responds to the deviceready event.
+         An app that sends an SMS message to every phone number in an excel sheet.
     </description>
-    <author email="dev@cordova.apache.org" href="http://cordova.io">
-        Apache Cordova Team
+    <author email="denperidge@gmail.com" href="https://denperidge.com">
+        Denperidge
     </author>
     <content src="index.html" />
     <access origin="*" />
@@ -14,12 +14,15 @@
     <allow-intent href="https://*/*" />
     <allow-intent href="tel:*" />
     <allow-intent href="sms:*" />
+    <!--
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
+    -->
     <platform name="android">
         <allow-intent href="market:*" />
         <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest/uses-permission" xmlns:android="http://schemas.android.com/apk/res/android">
             <uses-permission android:name="android.permission.SEND_SMS" />
+            <uses-permission android:name="android.permission.INTERNET" />
         </edit-config>
     </platform>
     <platform name="ios">
