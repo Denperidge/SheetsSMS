@@ -1,5 +1,6 @@
 
 To connect a device over wifi, first use adb connect, then cordova run android --device 
+Oh and use adb kill-server if you're only running one emulator/device but adb detects multiple for your logcat and stuff
 
 ## License
 
