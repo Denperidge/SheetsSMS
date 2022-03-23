@@ -42,7 +42,7 @@ var debug = document.getElementById("debug");
 var xlsx;
 function DownloadFromURL(url) {
     contacts = [];
-    debug.innerHTML = "";
+    debug.value = "";
     console.log(url)
     
     if (url.indexOf("google.com") > -1) {
@@ -92,11 +92,15 @@ function DownloadFromURL(url) {
                         }
                     }
 
-                    if (contact.phonenumber == "") {
+                    // Make sure phonenumber property exists and isn't empty
+                    if (!contact.hasOwnProperty("phonenumber")) {
+                        return;
+                    }
+                    else if (contact.phonenumber == "") {
                         return;
                     }
      
-                    debug.innerHTML += "Added: " + contact.phonenumber + " " + contact.otherInfo + "<br>"
+                    debug.value += "Added: " + contact.phonenumber + " " + contact.otherInfo + "\n"
           
                     contacts.push(contact);
                     console.log(contact)
@@ -131,7 +135,7 @@ document.getElementById("send").addEventListener("click", () => {
         return;
     } 
 
-    debug.innerHTML = "";
+    debug.value = "";
 
     if (sendingSms == null) {
         HandleSMSPermissions(() => {
@@ -146,10 +150,13 @@ document.getElementById("send").addEventListener("click", () => {
 
             sendingSms = setInterval(() => {
                 var phonenumber = contacts[index].phonenumber;
+                console.log(phonenumber)
                 sms.send(phonenumber, text, options, 
                     (success) => {
-                        debug.innerHTML += "SMS succesfuly sent to " + phonenumber;
+                        debug.innerHTML += "SMS succesfuly sent to " + phonenumber + "\n";
                     },(error)=> {
+                        clearInterval(sendingSms);
+                        sendingSms = null;
                         console.log("SMS failed: " + error);
                         alert("SMS failed: " + error);
                     })
@@ -179,13 +186,14 @@ function HandleSMSPermissions(cb) {
                 // SMS permission has been granted
                 cb();
             }, (err) => {
-                alert("SMS permission not granted");
+                debug.value = err.toString();
+                debug.value += "SMS permission not granted";
             })
         } else {
             cb();
         }
         // From here, assume 
     }, (err) => {
-        alert("SMS permission is needed!");
+        debug.Value += "SMS permission is needed!";
     });
 }
