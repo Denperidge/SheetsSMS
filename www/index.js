@@ -33,6 +33,10 @@ function onDeviceReady() {
     }
 }
 
+function Debug(string) {
+    debug.value += "\n" + string;
+}
+
 var contacts;
 // \s matches all spaces
 var numberRegex = /^[+0-9\s.-]{7,}$/;  // Thanks to https://stackoverflow.com/a/19715367/5522348
@@ -43,7 +47,7 @@ var xlsx;
 function DownloadFromURL(url) {
     contacts = [];
     debug.value = "";
-    console.log(url)
+    Debug(url)
     
     if (url.indexOf("google.com") > -1) {
         var googleDownloadUrlAddition = "/export?format=xlsx";
@@ -54,17 +58,17 @@ function DownloadFromURL(url) {
             url += googleDownloadUrlAddition;
         }
     }
-    console.log(url);
+    Debug(url);
     
 
 
     var req = new XMLHttpRequest();
     req.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            //console.log(this.responseText)
-            //console.log(XLSX.utils.sheet_to_json(new Uint8Array(this.response)));
+            //Debug(this.responseText)
+            //Debug(XLSX.utils.sheet_to_json(new Uint8Array(this.response)));
             var workbook = XLSX.read(req.response);
-            console.log(workbook);
+            Debug(workbook);
             var sheets = workbook.Sheets;
             for (var sheetName in sheets) {
                 var sheet = sheets[sheetName];
@@ -77,17 +81,17 @@ function DownloadFromURL(url) {
 
                     for (var cellName in row) {
                         var cellValue = row[cellName];
-                        console.log(cellValue);
+                        Debug(cellValue);
                         
                         if (cellName == "__rowNum__") {
-                            console.log("Skip rownum!");
+                            Debug("Skip rownum!");
                         }
                         else if (numberRegex.test(cellValue)) {
-                            console.log("Regex match!");
+                            Debug("Regex match!");
                             contact.phonenumber = cellValue;
                         }
                         else {
-                            console.log("No regex match, other info!")
+                            Debug("No regex match, other info!")
                             contact.otherInfo += cellValue + " ";
                         }
                     }
@@ -103,7 +107,7 @@ function DownloadFromURL(url) {
                     debug.value += "Added: " + contact.phonenumber + " " + contact.otherInfo + "\n"
           
                     contacts.push(contact);
-                    console.log(contact)
+                    Debug(contact)
                 });
             }
         }
@@ -131,7 +135,7 @@ var sendingSms = null;
 }, 1000);
 document.getElementById("send").addEventListener("click", () => {
     if (sms == undefined) {
-        console.log("SMS not defined, cancelling send!");
+        Debug("SMS not defined, cancelling send!");
         return;
     } 
 
@@ -150,14 +154,14 @@ document.getElementById("send").addEventListener("click", () => {
 
             sendingSms = setInterval(() => {
                 var phonenumber = contacts[index].phonenumber;
-                console.log(phonenumber)
+                Debug(phonenumber)
                 sms.send(phonenumber, text, options, 
                     (success) => {
                         debug.innerHTML += "SMS succesfuly sent to " + phonenumber + "\n";
                     },(error)=> {
                         clearInterval(sendingSms);
                         sendingSms = null;
-                        console.log("SMS failed: " + error);
+                        Debug("SMS failed: " + error);
                         alert("SMS failed: " + error);
                     })
                 index++;
@@ -186,14 +190,14 @@ function HandleSMSPermissions(cb) {
                 // SMS permission has been granted
                 cb();
             }, (err) => {
-                debug.value = err.toString();
-                debug.value += "SMS permission not granted";
+                Debug(err.toString());
+                Debug("\nSMS permission not granted");
             })
         } else {
             cb();
         }
         // From here, assume 
     }, (err) => {
-        debug.Value += "SMS permission is needed!";
+        Debug("SMS permission is needed!");
     });
 }
