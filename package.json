@@ -14,11 +14,15 @@
   "license": "(MIT OR Apache-2.0)",
   "devDependencies": {
     "cordova-android": "^9.1.0",
+    "cordova-plugin-android-permissions": "^1.1.3",
+    "cordova-plugin-whitelist": "^1.3.5",
     "cordova-sms-plugin": "^1.0.1"
   },
   "cordova": {
     "plugins": {
-      "cordova-sms-plugin": {}
+      "cordova-sms-plugin": {},
+      "cordova-plugin-android-permissions": {},
+      "cordova-plugin-whitelist": {}
     },
     "platforms": [
       "android"

@@ -23,17 +23,44 @@ Changes: everything but the addEventListener/deviceready
 
 // Wait for the deviceready event before using any of Cordova's device APIs.
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
-document.addEventListener('deviceready', onDeviceReady, false);
+document.addEventListener('deviceready', onDeviceReady, true);
 
 function onDeviceReady() {
-    var previousUrl = localStorage.getItem("url");
-    if (previousUrl != null) {
-        document.getElementById("url").value = previousUrl;
-        DownloadFromURL(previousUrl);
+    
+    try {
+        var permissions = cordova.plugins.permissions;
+        Debug(permissions.SEND_SMS)
+        permissions.requestPermission(permissions.SEND_SMS, (success)=> {
+            Debug("Success");
+            Debug(success);
+        }, (err) => {
+            Debug("Error")
+            Debug(err);
+        });
+    } catch (err) {
+        Debug ("Permissions failed")
+        Debug(err);
     }
+    
+
+    try {
+        var previousUrl = localStorage.getItem("url");
+        if (previousUrl != null) {
+            document.getElementById("url").value = previousUrl;
+            DownloadFromURL(previousUrl);
+        }
+    } catch (err) {
+        Debug("Previous url download failed");
+        Debug(err)
+    }
+
+
+
+    
 }
 
 function Debug(string) {
+    console.log(string);
     debug.value += "\n" + string;
 }
 
@@ -43,10 +70,8 @@ var numberRegex = /^[+0-9\s.-]{7,}$/;  // Thanks to https://stackoverflow.com/a/
 
 var debug = document.getElementById("debug");
 
-var xlsx;
 function DownloadFromURL(url) {
     contacts = [];
-    debug.value = "";
     Debug(url)
     
     if (url.indexOf("google.com") > -1) {
@@ -57,6 +82,9 @@ function DownloadFromURL(url) {
         } else {
             url += googleDownloadUrlAddition;
         }
+        if (url.indexOf("https") < 0) {
+            url = "https://" + url;
+        }
     }
     Debug(url);
     
@@ -64,6 +92,8 @@ function DownloadFromURL(url) {
 
     var req = new XMLHttpRequest();
     req.onreadystatechange = function() {
+        Debug(req.status);
+        
         if (this.readyState == 4 && this.status == 200) {
             //Debug(this.responseText)
             //Debug(XLSX.utils.sheet_to_json(new Uint8Array(this.response)));
@@ -104,7 +134,7 @@ function DownloadFromURL(url) {
                         return;
                     }
      
-                    debug.value += "Added: " + contact.phonenumber + " " + contact.otherInfo + "\n"
+                    Debug("Added: " + contact.phonenumber + " " + contact.otherInfo);
           
                     contacts.push(contact);
                     Debug(contact)
@@ -112,8 +142,10 @@ function DownloadFromURL(url) {
             }
         }
     };
+    // Thanks to https://stackoverflow.com/a/48969579
     req.open("GET", url, true);
     req.responseType = "arraybuffer";
+    req.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
     req.send();
 }
 
@@ -139,40 +171,39 @@ document.getElementById("send").addEventListener("click", () => {
         return;
     } 
 
-    debug.value = "";
+    //debug.value = "";
 
     if (sendingSms == null) {
-        HandleSMSPermissions(() => {
+    
 
-            var options = {
-                android: {
-                    intent: ''
-                }
+        var options = {
+            android: {
+                intent: ''
             }
-            var index = 0;
-            var text = document.getElementById("text").value;
+        }
+        var index = 0;
+        var text = document.getElementById("text").value;
 
-            sendingSms = setInterval(() => {
-                var phonenumber = contacts[index].phonenumber;
-                Debug(phonenumber)
-                sms.send(phonenumber, text, options, 
-                    (success) => {
-                        debug.innerHTML += "SMS succesfuly sent to " + phonenumber + "\n";
-                    },(error)=> {
-                        clearInterval(sendingSms);
-                        sendingSms = null;
-                        Debug("SMS failed: " + error);
-                        alert("SMS failed: " + error);
-                    })
-                index++;
-                if (index >= contacts.length) {
+        sendingSms = setInterval(() => {
+            var phonenumber = contacts[index].phonenumber;
+            Debug(phonenumber)
+            sms.send(phonenumber, text, options, 
+                (success) => {
+                    Debug("SMS succesfuly sent to " + phonenumber);
+                },(error)=> {
                     clearInterval(sendingSms);
-                    alert("Done")
                     sendingSms = null;
-                }
-            }, 1000);
-            
-        }); 
+                    Debug("SMS failed: " + error);
+                })
+            index++;
+            if (index >= contacts.length) {
+                clearInterval(sendingSms);
+                Debug("done");
+                sendingSms = null;
+            }
+        }, 1000);
+        
+    
     } else {
         // Cancel if its pressed again
         clearInterval(sendingSms);
@@ -182,6 +213,8 @@ document.getElementById("send").addEventListener("click", () => {
     
 });
 
+
+/*
 function HandleSMSPermissions(cb) {
     // Adapted from https://www.npmjs.com/package/cordova-sms-plugin
     sms.hasPermission((hasPermission) => {
@@ -201,3 +234,4 @@ function HandleSMSPermissions(cb) {
         Debug("SMS permission is needed!");
     });
 }
+*/
